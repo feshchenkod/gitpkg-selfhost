@@ -1,0 +1,22 @@
+services:
+  gitpkg:
+    image: ghcr.io/feshchenkod/gitpkg-selfhost:latest
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+    command: caddy reverse-proxy --from ${DOMAIN} --to gitpkg:8000
+
+volumes:
+  caddy_data:
